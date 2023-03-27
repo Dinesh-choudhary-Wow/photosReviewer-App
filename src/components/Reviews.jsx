@@ -1,14 +1,16 @@
-import React,{useState} from 'react'
+import React,{useEffect, useState} from 'react'
 import ReactStars from 'react-stars';
 import { reviewsRef, db } from '../firebase/firebase';
-import { addDoc,doc,updateDoc } from 'firebase/firestore';
-import { TailSpin } from 'react-loader-spinner';
+import { addDoc,doc,updateDoc, where, query, getDocs } from 'firebase/firestore';
+import { TailSpin,ThreeDots } from 'react-loader-spinner';
 import swal from 'sweetalert';
 
 const Reviews = ({id,prevRating,userRated}) => {
     const [rating,setRating] = useState(0);
     const [loading,setLoading] = useState(false);
+    const [reviewLoading,setReviewLoading] = useState(false);
     const [form, setForm] = useState("");
+    const [data, setData] = useState([]);
 
     const sendReview = async() => {
         setLoading(true);
@@ -43,6 +45,22 @@ const Reviews = ({id,prevRating,userRated}) => {
         }
         setLoading(false);
     }
+
+    useEffect(() => {
+        async function getData(){
+            setReviewLoading(true);
+            let quer = query(reviewsRef, where('photoid', '==', id))
+            const querySnapshot = await getDocs(quer);
+            querySnapshot.forEach((doc) => {
+                setData((prev) => [...prev, doc.data()])
+            })
+            setReviewLoading(false);
+        }
+        getData();
+    },[])
+
+
+
   return (
     <div className='mt-5 border-t-2 border-gray-400 w-full'>
         <ReactStars
@@ -60,6 +78,29 @@ const Reviews = ({id,prevRating,userRated}) => {
         <button onClick={sendReview} className='bg-blue-600 flex justify-center w-full p-2'>
             {loading ? <TailSpin height={20} color="white" /> : 'Share'}
         </button>
+        {reviewLoading ? 
+            <div className='mt-6 flex justify-center'><ThreeDots height={10} color="white" /></div>
+        :
+        <div className='mt-4'>
+            {data.map((e,i) => {
+                return(
+                    <div key={i} className='p-2 w-full mt-2 border-b border-gray600'>
+                        <div className='flex items-center'>
+                            <p className='text-green-500'>{e.name}</p>
+                            <p className='ml-3 text-xs'>({new Date(e.timestamp).toLocaleString()})</p>
+                        </div>
+                        <ReactStars
+                            size={20}
+                            half={true}
+                            value={e.rating}
+                            edit={false}
+                        />
+                        <p>{e.thought}</p>
+                    </div>
+                )
+            })}
+        </div>
+        }
     </div>
   )
 }
