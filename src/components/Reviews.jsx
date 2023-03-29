@@ -1,23 +1,29 @@
-import React,{useEffect, useState} from 'react'
+import React,{useContext, useEffect, useState} from 'react'
 import ReactStars from 'react-stars';
 import { reviewsRef, db } from '../firebase/firebase';
 import { addDoc,doc,updateDoc, where, query, getDocs } from 'firebase/firestore';
 import { TailSpin,ThreeDots } from 'react-loader-spinner';
 import swal from 'sweetalert';
+import {AppState} from '../App';
+import { useNavigate } from 'react-router-dom';
 
 const Reviews = ({id,prevRating,userRated}) => {
+    const useAppstate = useContext(AppState);
     const [rating,setRating] = useState(0);
     const [loading,setLoading] = useState(false);
     const [reviewLoading,setReviewLoading] = useState(false);
     const [form, setForm] = useState("");
     const [data, setData] = useState([]);
+    const navigate = useNavigate();
+    const [newAdded, setNewAdded] = useState(0);
 
     const sendReview = async() => {
         setLoading(true);
         try{
+            if(useAppstate.login){
             await addDoc(reviewsRef,{
                 photoid: id,
-                name:"dinesh",
+                name:useAppstate.userName,
                 rating:rating,
                 thought: form,
                 timestamp:new Date().getTime()
@@ -29,12 +35,17 @@ const Reviews = ({id,prevRating,userRated}) => {
             })
             setRating(0);
             setForm("");
+            setNewAdded(newAdded + 1);
+            setData([]);
             swal({
                 title: "Review Added",
                 icon: "success",
                 buttons:false,
                 timer: 3000,
             });
+        }else{
+            navigate('/login');
+        }
         }catch(error){
             swal({
                 title: error.message,
@@ -57,7 +68,7 @@ const Reviews = ({id,prevRating,userRated}) => {
             setReviewLoading(false);
         }
         getData();
-    },[])
+    },[newAdded]);
 
 
 

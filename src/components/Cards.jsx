@@ -40,7 +40,7 @@ const Cards = () => {
             <Link to={`/detail/${e.id}`}><div key={i} className='mt-6 bg-gray-900 p-2 font-medium shadow-xl hover:-translate-y-3 cursor-pointer transition-all duration-300'>
               <img className='photo h-60 md:h-72' src={e.image} />
               <h1>
-                <span className='text-indigo-500'>Name: </span>{e.title}
+                {e.title}
               </h1>
               {/* <h1>
                 <span className='text-indigo-500'>Description: </span> {e.description}
